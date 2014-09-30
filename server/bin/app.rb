@@ -1,42 +1,52 @@
 puts "This is process #{Process.pid}"
 
+require_relative 'JSONable'
 require 'sinatra'
 require 'json'
 
+
 get '/' do
-  'Hello world!'
+  halt 404
 end
 
-get '/entity' do
+get '/api/trackables' do
   content_type :json
-  a = Trackable.new
-  a.name = 'Happiness'
-  a.scores << Score.new(5, 'great day')
-  a.scores << Score.new(10, 'everyday i\'m bustin')
+  t = Trackable.new
+  t.name = 'Happiness'
+  t.scores << Score.new(7, 'great day')
+  t.scores << Score.new(10, 'everyday i\'m bustin')
+  ts = Trackables.new
+  ts.items << t
+  
+  t = Trackable.new
+  t.name = 'Creativity'
+  t.scores << Score.new(5, 'ok')
+  t.scores << Score.new(10, 'inspired!')
+  ts.items << t
     
-  return a.to_json
+  return ts.to_json
 end
 
+post '/api/trackables', :provides => :json do
+  # Do something with the params, then…
+  #  halt 200, params.to_json 
+  body = request.env["rack.input"].read
+  json = JSON.parse body
+    
+  dump = ''
+  json["items"].first["scores"].each{|h|
+    dump << h["rating"].to_s + ':' + h["notes"].to_s
+  }
+  
+  halt 200, dump
+end
 
-class JSONable
-    def to_json(*a)
-      hash = {}
-      self.instance_variables.each do |var|
-        name = var[1..-1]
-        hash[name] = self.instance_variable_get var
-      end
-      hash.to_json(*a)
-    end
-
-    def ref_children
-      return self.instance_variables.map { |var| self.instance_variable_get var }
-    end
-
-    def declare(&block)
-      self.instance_eval &block if block_given?
-    end
-
-  end
+class Trackables < JSONable
+   attr_accessor :items
+   def initialize()
+       self.items = []
+   end
+end
 
 class Trackable < JSONable
    attr_accessor :name, :created, :scores
