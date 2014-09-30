@@ -34,9 +34,14 @@ post '/api/trackables', :provides => :json do
   json = JSON.parse body
     
   dump = ''
-  json["items"].first["scores"].each{|h|
-    dump << h["rating"].to_s + ':' + h["notes"].to_s
+  
+  json["items"].each{|h|
+    dump << h["name"].to_s + '  '
+    h["scores"].each{|h|
+      dump << h["rating"].to_s + '[' + h["notes"].to_s + ']'
+    }
   }
+  
   
   halt 200, dump
 end
