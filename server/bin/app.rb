@@ -6,7 +6,8 @@ require 'json'
 
 
 get '/' do
-  halt 404
+  return "Hello World"
+  #halt 404
 end
 
 get '/api/trackables' do
